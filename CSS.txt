@@ -1,0 +1,21 @@
+
+// 17 套经典主题配色核心数据库
+const TRANSLATE_THEMES = [
+    { id: "line-kakao", name: "LINE / Kakao", desc: "经典灰蓝底与明黄气泡", bg: "#748b9b", myBubble: "#ffeb33", myText: "#000", leftBubble: "#ffffff", leftText: "#000", radius: "12px", border: "none" },
+    { id: "bubble-lysn", name: "Bubble (Lysn)", desc: "韩国追星粉蓝，保留按钮", bg: "#bcd3f1", myBubble: "#3a76e9", myText: "#fff", leftBubble: "#ffffff", leftText: "#000", radius: "15px", border: "none" },
+    { id: "viber", name: "Viber 魅紫", desc: "紫色系顶栏与灰白气泡", bg: "#eff0f4", myBubble: "#7360f2", myText: "#fff", leftBubble: "#ffffff", leftText: "#000", radius: "14px", border: "none", customCss: ".top-bar { background: #7360f2 !important; color: white !important; }" },
+    { id: "wechat", name: "WeChat 微信", desc: "修正暗黑断层，保留绿发送键", bg: "#ededed", myBubble: "#95ec69", myText: "#000", leftBubble: "#ffffff", leftText: "#000", radius: "4px", border: "none" },
+    { id: "qq", name: "QQ企鹅", desc: "扁平化社交，明亮蓝白", bg: "#f3f6f9", myBubble: "#0099ff", myText: "#fff", leftBubble: "#ffffff", leftText: "#000", radius: "12px", border: "none" },
+    { id: "imessage", name: "iMessage", desc: "苹果原生胶囊型全按键支持", bg: "#ffffff", myBubble: "#1f8fff", myText: "#fff", leftBubble: "#e9e9eb", leftText: "#000", radius: "20px", border: "none" },
+    { id: "telegram-dark", name: "Telegram 夜间", desc: "极客夜间极简暗色调", bg: "#182533", myBubble: "#2b5278", myText: "#fff", leftBubble: "#182533", leftText: "#fff", radius: "10px", border: "1px solid #243547" },
+    { id: "whatsapp", name: "WhatsApp", desc: "纯净深绿与纯白气泡组合", bg: "#efeae2", myBubble: "#d9fdd3", myText: "#000", leftBubble: "#ffffff", leftText: "#000", radius: "8px", border: "none" },
+    { id: "messenger", name: "Messenger", desc: "FB 迷幻渐变紫蓝炫彩风", bg: "#ffffff", myBubble: "linear-gradient(45deg, #007aff, #9227f4)", myText: "#fff", leftBubble: "#e4e6eb", leftText: "#000", radius: "18px", border: "none" },
+    { id: "discord", name: "Discord", desc: "极客游戏风，无明显外框", bg: "#36393f", myBubble: "transparent", myText: "#dcddde", leftBubble: "transparent", leftText: "#dcddde", radius: "0px", border: "none", customCss: ".message-text { font-family: monospace; }" },
+    { id: "little-red", name: "Little Red", desc: "小红书纯白干净，红点缀", bg: "#f9f9f9", myBubble: "#ff2442", myText: "#fff", leftBubble: "#ffffff", leftText: "#000", radius: "16px", border: "1px solid #eee" },
+    { id: "instagram", name: "Instagram", desc: "IG 暗黑极光，渐变色气泡", bg: "#000000", myBubble: "linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5)", myText: "#fff", leftBubble: "#262626", leftText: "#fff", radius: "22px", border: "none" },
+    { id: "bubble-pink", name: "Bubble 粉红", desc: "少女心纯欲粉，所有按键适用", bg: "#fff0f2", myBubble: "#ff94b3", myText: "#fff", leftBubble: "#ffffff", leftText: "#444", radius: "15px", border: "none" },
+    { id: "ios6-retro", name: "iOS6 拟物复古", desc: "经典波点背景，强高光立体气泡", bg: "#d2d7e0", myBubble: "#3a76e9", myText: "#fff", leftBubble: "#ffffff", leftText: "#000", radius: "10px", border: "none", customCss: ".message-bubble { box-shadow: inset 0 8px 4px rgba(255,255,255,0.4), 0 2px 3px rgba(0,0,0,0.2) !important; }" },
+    { id: "bubble-pro", name: "Bubble Pro", desc: "带 ARTIST 标，韩系直角气泡", bg: "#ffffff", myBubble: "#000000", myText: "#fff", leftBubble: "#f1f1f3", leftText: "#000", radius: "2px", border: "none" },
+    { id: "nokia-retro", name: "Nokia 复古按键", desc: "粗边框像素立体渐变气泡", bg: "#8fa399", myBubble: "#ffffff", myText: "#000", leftBubble: "#ffffff", leftText: "#000", radius: "0px", border: "2px solid #000" },
+    { id: "telegram-day", name: "Telegram 日间", desc: "经典蓝白绿，专属飞行动画风", bg: "#deedd6", myBubble: "#e1ffc7", myText: "#000", leftBubble: "#ffffff", leftText: "#000", radius: "12px", border: "none" }
+];

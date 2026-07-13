@@ -1,0 +1,74 @@
+
+<!-- ==================== 梦角传讯功能升级包：UI 注入 ==================== -->
+<!-- 底部新增的入口按钮组（可塞进高级功能，或直接悬浮在主页侧边） -->
+<div id="custom-addon-dock" style="position: fixed; right: 15px; bottom: 80px; z-index: 999; display: flex; flex-direction: column; gap: 10px;">
+    <button onclick="toggleAddonModal('gomoku-modal')" style="width: 45px; height: 45px; border-radius: 50%; border: none; background: #6f8695; color: white; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.15); font-size: 18px;" title="五子棋">♟️</button>
+    <button onclick="toggleAddonModal('period-modal')" style="width: 45px; height: 45px; border-radius: 50%; border: none; background: #f0788e; color: white; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.15); font-size: 18px;" title="月经记录">🩸</button>
+    <button onclick="toggleAddonModal('theme-shop-modal')" style="width: 45px; height: 45px; border-radius: 50%; border: none; background: #ecc844; color: white; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.15); font-size: 18px;" title="主题商店">🛍️</button>
+</div>
+
+<!-- 通用基础弹窗样式 -->
+<style>
+    .addon-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; font-family: sans-serif; }
+    .addon-modal-content { background: #fff; width: 90%; max-width: 400px; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 85vh; overflow-y: auto; }
+    .addon-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+    .addon-modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #999; }
+</style>
+
+<!-- 1. 五子棋弹窗 -->
+<div id="gomoku-modal" class="addon-modal">
+    <div class="addon-modal-content">
+        <div class="addon-modal-header">
+            <h3 style="margin:0; color:#333;">与梦角对弈 · 五子棋</h3>
+            <button class="addon-modal-close" onclick="toggleAddonModal('gomoku-modal')">×</button>
+        </div>
+        <div style="text-align: center; margin-bottom: 10px; font-size: 14px; color: #666;" id="gomoku-status">执黑先行，点击棋盘落子</div>
+        <canvas id="gomoku-board" width="300" height="300" style="background:#e6b980; display:block; margin:0 auto; border-radius:8px; box-shadow:inset 0 0 10px rgba(0,0,0,0.2); cursor:pointer;"></canvas>
+        <button onclick="resetGomokuGame()" style="width:100%; margin-top:15px; padding:10px; background:#6f8695; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">重新开局</button>
+    </div>
+</div>
+
+<!-- 2. 月经记录弹窗 -->
+<div id="period-modal" class="addon-modal">
+    <div class="addon-modal-content">
+        <div class="addon-modal-header">
+            <h3 style="margin:0; color:#f0788e;">身体状态 · 经期追踪</h3>
+            <button class="addon-modal-close" onclick="toggleAddonModal('period-modal')">×</button>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; margin-bottom:5px; font-size:14px; font-weight:bold; color:#555;">标记今日状态：</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button onclick="logPeriod('start')" style="padding:10px; background:#f0788e; color:white; border:none; border-radius:8px; cursor:pointer;">🔴 姨妈来了</button>
+                <button onclick="logPeriod('end')" style="padding:10px; background:#f5c2cb; color:#666; border:none; border-radius:8px; cursor:pointer;">⚪ 姨妈走了</button>
+            </div>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; margin-bottom:5px; font-size:14px; font-weight:bold; color:#555;">今日流量/痛感：</label>
+            <select id="period-flow" onchange="savePeriodDetails()" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;">
+                <option value="无">均无异常 / 不在经期</option>
+                <option value="量少/微痛">量少 / 轻微不适</option>
+                <option value="量中/隐痛">量中 / 隐隐作痛</option>
+                <option value="量多/剧痛">量多 / 腹痛难忍</option>
+            </select>
+        </div>
+        <div style="background:#fff5f6; border:1px solid #ffd1d6; border-radius:8px; padding:10px; font-size:13px; color:#c84b61;">
+            <strong>历史摘要：</strong>
+            <div id="period-history-summary" style="margin-top:5px; white-space: pre-line;">暂无记录数据</div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. 主题商店弹窗 -->
+<div id="theme-shop-modal" class="addon-modal">
+    <div class="addon-modal-content" style="max-width: 450px;">
+        <div class="addon-modal-header">
+            <h3 style="margin:0; color:#ecc844;">界面美化 · 主题商店</h3>
+            <button class="addon-modal-close" onclick="toggleAddonModal('theme-shop-modal')">×</button>
+        </div>
+        <p style="font-size:12px; color:#888; margin: -5px 0 15px 0;">点击下方卡片，一键为您和梦角替换整套聊天视觉风格。</p>
+        <div id="theme-shop-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; max-height:50vh; overflow-y:auto; padding-right:5px;">
+            <!-- 由 JS 自动动态渲染 17 套主题卡片 -->
+        </div>
+    </div>
+</div>
+<!-- ==================== 升级包 UI 注入结束 ==================== -->

@@ -1,0 +1,274 @@
+
+<script>
+// ==================== 梦角传讯功能升级包：核心 JS 逻辑 ====================
+
+// 1. 弹窗显示/隐藏控制器
+function toggleAddonModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    if (modal.style.display === "flex") {
+        modal.style.display = "none";
+    } else {
+        // 关闭其他弹窗
+        document.querySelectorAll('.addon-modal').forEach(m => m.style.display = 'none');
+        modal.style.display = "flex";
+        // 如果打开的是五子棋，初始化棋盘
+        if (modalId === 'gomoku-modal') initGomoku();
+        // 如果打开的是经期，加载摘要
+        if (modalId === 'period-modal') loadPeriodSummary();
+        // 如果打开的是主题商店，加载列表
+        if (modalId === 'theme-shop-modal') renderThemeShop();
+    }
+}
+
+// 2. 五子棋对弈逻辑 (带梦角简单落子 AI)
+let gomokuBoard = Array(15).fill(0).map(() => Array(15).fill(0));
+let gomokuGameOver = false;
+
+function initGomoku() {
+    const canvas = document.getElementById('gomoku-board');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    // 绑定点击事件（防止重复绑定）
+    canvas.onclick = function(e) {
+        if (gomokuGameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const i = Math.round(x / 20 - 0.5);
+        const j = Math.round(y / 20 - 0.5);
+        
+        if (i >= 0 && i < 15 && j >= 0 && j < 15 && gomokuBoard[i][j] === 0) {
+            // 玩家落子 (黑子: 1)
+            gomokuBoard[i][j] = 1;
+            drawGomoku();
+            if (checkGomokuWin(i, j, 1)) {
+                document.getElementById('gomoku-status').innerText = "🎉 恭喜你，你赢了！";
+                gomokuGameOver = true;
+                return;
+            }
+            
+            // 轮到梦角思考落子
+            document.getElementById('gomoku-status').innerText = "梦角正在思考落子...";
+            setTimeout(() => {
+                dreamCharacterMove();
+            }, 600);
+        }
+    };
+    resetGomokuGame();
+}
+
+function resetGomokuGame() {
+    gomokuBoard = Array(15).fill(0).map(() => Array(15).fill(0));
+    gomokuGameOver = false;
+    document.getElementById('gomoku-status').innerText = "执黑先行，点击棋盘落子";
+    drawGomoku();
+}
+
+function drawGomoku() {
+    const canvas = document.getElementById('gomoku-board');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 300, 300);
+    
+    // 画网格
+    ctx.strokeStyle = '#8b6a4f';
+    ctx.lineWidth = 1;
+    for(let i=0; i<15; i++) {
+        ctx.beginPath();
+        ctx.moveTo(10 + i*20, 10);
+        ctx.lineTo(10 + i*20, 290);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(10, 10 + i*20);
+        ctx.lineTo(290, 10 + i*20);
+        ctx.stroke();
+    }
+    
+    // 画棋子
+    for(let i=0; i<15; i++) {
+        for(let j=0; j<15; j++) {
+            if(gomokuBoard[i][j] !== 0) {
+                ctx.beginPath();
+                ctx.arc(10 + i*20, 10 + j*20, 8, 0, 2*Math.PI);
+                ctx.fillStyle = gomokuBoard[i][j] === 1 ? '#000000' : '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.stroke();
+            }
+        }
+    }
+}
+
+// 梦角简单 AI 自动拦截与落子算法
+function dreamCharacterMove() {
+    if (gomokuGameOver) return;
+    let moveMade = false;
+    
+    // 策略：优先寻找空位防守或进攻（这里采用最基础的寻找玩家棋子周围的空位落子）
+    for(let i=0; i<15; i++) {
+        for(let j=0; j<15; j++) {
+            if(gomokuBoard[i][j] === 1) { // 发现玩家黑子，在其旁边落白子
+                const directions = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
+                for(let d of directions) {
+                    let ni = i + d[0], nj = j + d[1];
+                    if(ni>=0 && ni<15 && nj>=0 && nj<15 && gomokuBoard[ni][nj] === 0) {
+                        gomokuBoard[ni][nj] = 2; // 梦角落白子
+                        moveMade = true;
+                        drawGomoku();
+                        if(checkGomokuWin(ni, nj, 2)) {
+                            document.getElementById('gomoku-status').innerText = "💖 梦角赢了哦，再接再厉！";
+                            gomokuGameOver = true;
+                        } else {
+                            document.getElementById('gomoku-status').innerText = "轮到你了，请落子";
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    
+    // 兜底：如果没找到相邻空位，随机找一个空位
+    if(!moveMade) {
+        let available = [];
+        for(let i=0; i<15; i++) {
+            for(let j=0; j<15; j++) {
+                if(gomokuBoard[i][j] === 0) available.push({i,j});
+            }
+        }
+        if(available.length > 0) {
+            let choice = available[Math.floor(Math.random() * available.length)];
+            gomokuBoard[choice.i][choice.j] = 2;
+            drawGomoku();
+            document.getElementById('gomoku-status').innerText = "轮到你了，请落子";
+        }
+    }
+}
+
+function checkGomokuWin(x, y, role) {
+    const directions = [[1,0],[0,1],[1,1],[1,-1]];
+    for(let d of directions) {
+        let count = 1;
+        // 正向寻找
+        let nx = x + d[0], ny = y + d[1];
+        while(nx>=0 && nx<15 && ny>=0 && ny<15 && gomokuBoard[nx][ny] === role) { count++; nx += d[0]; ny += d[1]; }
+        // 反向寻找
+        nx = x - d[0]; ny = y - d[1];
+        while(nx>=0 && nx<15 && ny>=0 && ny<15 && gomokuBoard[nx][ny] === role) { count++; nx -= d[0]; ny -= d[1]; }
+        if(count >= 5) return true;
+    }
+    return false;
+}
+
+
+// 3. 月经记录持久化逻辑
+function logPeriod(type) {
+    const today = new Date().toLocaleDateString();
+    let data = JSON.parse(localStorage.getItem('user_period_data') || '{"history":[]}');
+    
+    if (type === 'start') {
+        data.lastStart = today;
+        data.history.push(`🔴 ${today} 姨妈期开始`);
+    } else if (type === 'end') {
+        data.lastEnd = today;
+        data.history.push(`⚪ ${today} 姨妈期结束`);
+    }
+    
+    localStorage.setItem('user_period_data', JSON.stringify(data));
+    loadPeriodSummary();
+}
+
+function savePeriodDetails() {
+    const val = document.getElementById('period-flow').value;
+    let data = JSON.parse(localStorage.getItem('user_period_data') || '{"history":[]}');
+    const today = new Date().toLocaleDateString();
+    data.history.push(`📊 ${today} 记录：${val}`);
+    localStorage.setItem('user_period_data', JSON.stringify(data));
+    loadPeriodSummary();
+}
+
+function loadPeriodSummary() {
+    let data = JSON.parse(localStorage.getItem('user_period_data') || '{"history":[]}');
+    const summaryDiv = document.getElementById('period-history-summary');
+    if (!summaryDiv) return;
+    
+    if (data.history.length === 0) {
+        summaryDiv.innerText = "暂无记录。点击上方按钮可快速登记！";
+        return;
+    }
+    
+    // 只展示最近 4 条历史记录
+    let recent = data.history.slice(-4).reverse();
+    summaryDiv.innerText = `最近动态：\n` + recent.join('\n');
+}
+
+
+// 4. 主题商店皮肤动态渲染与引擎覆盖
+function renderThemeShop() {
+    const grid = document.getElementById('theme-shop-grid');
+    if (!grid || grid.children.length > 0) return; // 避免重复渲染
+    
+    TRANSLATE_THEMES.forEach(theme => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            border: 1px solid #ddd; border-radius: 10px; padding: 12px; cursor: pointer;
+            background: #fafafa; transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between;
+        `;
+        card.innerHTML = `
+            <div>
+                <div style="font-weight: bold; font-size:14px; color:#333; margin-bottom:4px;">${theme.name}</div>
+                <div style="font-size:11px; color:#888; line-height:1.3;">${theme.desc}</div>
+            </div>
+            <div style="margin-top:8px; display:flex; gap:4px; height:12px;">
+                <span style="flex:1; background:${theme.bg}; border-radius:2px;"></span>
+                <span style="flex:1; background:${theme.myBubble}; border-radius:2px;"></span>
+            </div>
+        `;
+        card.onmouseover = () => card.style.borderColor = '#ecc844';
+        card.onmouseout = () => card.style.borderColor = '#ddd';
+        card.onclick = () => applyShopTheme(theme);
+        grid.appendChild(card);
+    });
+}
+
+function applyShopTheme(theme) {
+    // 移除之前的附加动态主题样式
+    const oldStyle = document.getElementById('dynamic-shop-theme-style');
+    if (oldStyle) oldStyle.remove();
+    
+    // 创建一个全新的全局 CSS 样式标签，深度覆盖原网站的所有气泡、底板和文字
+    const style = document.createElement('style');
+    style.id = 'dynamic-shop-theme-style';
+    style.innerHTML = `
+        /* 覆盖聊天大背景 */
+        .chat-container, .main-container, #chat-body, body { 
+            background: ${theme.bg} !important; 
+            background-image: none !important; 
+        }
+        
+        /* 覆盖我方（右侧）气泡样式 */
+        .message.my .message-bubble, .message.right .message-bubble, [data-sender="me"] .bubble, .bubble-me {
+            background: ${theme.myBubble} !important;
+            color: ${theme.myText} !important;
+            border-radius: ${theme.radius} !important;
+            border: ${theme.border} !important;
+        }
+        
+        /* 覆盖梦角（左侧）气泡样式 */
+        .message.other .message-bubble, .message.left .message-bubble, [data-sender="other"] .bubble, .bubble-other {
+            background: ${theme.leftBubble} !important;
+            color: ${theme.leftText} !important;
+            border-radius: ${theme.radius} !important;
+            border: ${theme.border} !important;
+        }
+        
+        /* 注入特定主题的客制化 CSS 样式拓展 */
+        ${theme.customCss || ''}
+    `;
+    document.head.appendChild(style);
+    alert(`🎉 已成功应用风格：${theme.name}！快去聊天框看看效果吧！`);
+}
+
+// ==================== 升级包核心 JS 逻辑结束 ====================
+</script>
